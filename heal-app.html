@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heal - Wellness Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --mental: #a78bfa;
+            --physical: #14b8a6;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--mental) 0%, var(--physical) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: 16px;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .tab-btn.active {
+            color: var(--text);
+            border-bottom-color: var(--mental);
+        }
+
+        .tab-btn:hover {
+            color: var(--text);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Today Tab */
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .rating-scale {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .rating-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .rating-btn:hover {
+            border-color: var(--text-light);
+            transform: translateY(-2px);
+        }
+
+        .mental-scale .rating-btn.selected {
+            background: var(--mental);
+            color: white;
+            border-color: var(--mental);
+        }
+
+        .physical-scale .rating-btn.selected {
+            background: var(--physical);
+            color: white;
+            border-color: var(--physical);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--mental);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--mental) 0%, var(--physical) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text);
+        }
+
+        /* Progress Tab */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 30px;
+        }
+
+        .insights {
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(20, 184, 166, 0.1) 100%);
+            border-left: 4px solid var(--mental);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .insights h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .insights p {
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: var(--card);
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 4px solid var(--mental);
+        }
+
+        .stat-box.physical {
+            border-left-color: var(--physical);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--mental) 0%, var(--physical) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Cycle Tab */
+        .cycle-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .cycle-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .phase-diagram {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .cycle-circle {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            margin: 0 auto;
+            background: conic-gradient(
+                #a78bfa 0deg 90deg,
+                #60a5fa 90deg 180deg,
+                #14b8a6 180deg 270deg,
+                #f59e0b 270deg 360deg
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .phase-legend {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .phase-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .phase-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .phase-dot.menstrual { background: #a78bfa; }
+        .phase-dot.follicular { background: #60a5fa; }
+        .phase-dot.ovulation { background: #14b8a6; }
+        .phase-dot.luteal { background: #f59e0b; }
+
+        .phase-cards {
+            display: grid;
+            gap: 12px;
+        }
+
+        .phase-card {
+            background: var(--card);
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #a78bfa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .phase-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateX(4px);
+        }
+
+        .phase-card.selected {
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(20, 184, 166, 0.1) 100%);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .phase-card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .phase-card p {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        .date-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: var(--mental);
+        }
+
+        .success-message {
+            background: var(--success);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .wellness-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .wellness-item {
+            text-align: center;
+            padding: 16px;
+            background: var(--card);
+            border-radius: 8px;
+        }
+
+        .wellness-item-label {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .wellness-item-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">✨ Heal</div>
+            <p class="tagline">Track your mental, physical & cycle wellness patterns</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('today')">Today</button>
+            <button class="tab-btn" onclick="switchTab('progress')">Progress</button>
+            <button class="tab-btn" onclick="switchTab('cycle')">Cycle Tracker</button>
+        </div>
+
+        <!-- Today Tab -->
+        <div id="today" class="tab-content active">
+            <div class="card">
+                <div class="card-title">How are you feeling today?</div>
+                <div class="success-message" id="successMessage">✓ Your wellness data has been saved!</div>
+
+                <form id="wellnessForm" onsubmit="saveTodayData(event)">
+                    <div class="form-group">
+                        <label class="form-label">Mental Wellbeing (1 = Very Poor, 10 = Excellent)</label>
+                        <div class="rating-scale mental-scale" id="mentalScale"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Physical Wellbeing (1 = Very Poor, 10 = Excellent)</label>
+                        <div class="rating-scale physical-scale" id="physicalScale"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea id="notes" placeholder="Add any observations about your day..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Today's Entry</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Today's Summary</div>
+                <div id="todaySummary" class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <p>No data recorded yet. Start by rating your wellness above.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Tab -->
+        <div id="progress" class="tab-content">
+            <div class="card">
+                <div class="card-title">Your Wellness Timeline</div>
+                <div class="chart-container">
+                    <canvas id="wellnessChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Wellness Statistics</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Mental Avg (7 days)</div>
+                        <div class="stat-value" id="mentalAvg">—</div>
+                    </div>
+                    <div class="stat-box physical">
+                        <div class="stat-label">Physical Avg (7 days)</div>
+                        <div class="stat-value" id="physicalAvg">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Total Entries</div>
+                        <div class="stat-value" id="totalEntries">—</div>
+                    </div>
+                    <div class="stat-box physical">
+                        <div class="stat-label">Streak (Days)</div>
+                        <div class="stat-value" id="streak">—</div>
+                    </div>
+                </div>
+
+                <div class="insights">
+                    <h3>📈 Pattern Insights</h3>
+                    <p id="insightText">Start tracking to see patterns emerge over time.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cycle Tab -->
+        <div id="cycle" class="tab-content">
+            <div class="card">
+                <div class="card-title">Menstrual Cycle Tracker</div>
+                
+                <div class="form-group">
+                    <label class="form-label">Last Period Start Date</label>
+                    <input type="date" id="lastPeriodDate" class="date-input" onchange="updateCycleData()">
+                </div>
+
+                <button class="btn btn-secondary" onclick="calculateCyclePhase()">Update Cycle</button>
+
+                <div class="cycle-container">
+                    <div class="phase-diagram">
+                        <div class="cycle-circle" id="cycleCircle">Day 1</div>
+                        <div class="phase-legend">
+                            <div class="phase-item">
+                                <div class="phase-dot menstrual"></div>
+                                <span>Menstrual</span>
+                            </div>
+                            <div class="phase-item">
+                                <div class="phase-dot follicular"></div>
+                                <span>Follicular</span>
+                            </div>
+                            <div class="phase-item">
+                                <div class="phase-dot ovulation"></div>
+                                <span>Ovulation</span>
+                            </div>
+                            <div class="phase-item">
+                                <div class="phase-dot luteal"></div>
+                                <span>Luteal</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="card-title" style="margin-bottom: 16px;">Current Phase Info</div>
+                        <div class="phase-cards" id="phaseCards"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Cycle Wellness Chart</div>
+                <div class="chart-container">
+                    <canvas id="cycleChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize rating scales
+        function initRatingScales() {
+            const mentalScale = document.getElementById('mentalScale');
+            const physicalScale = document.getElementById('physicalScale');
+
+            for (let i = 1; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = i;
+                btn.className = 'rating-btn';
+                btn.dataset.value = i;
+                btn.onclick = () => selectRating('mental', i, mentalScale);
+                mentalScale.appendChild(btn);
+            }
+
+            for (let i = 1; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = i;
+                btn.className = 'rating-btn';
+                btn.dataset.value = i;
+                btn.onclick = () => selectRating('physical', i, physicalScale);
+                physicalScale.appendChild(btn);
+            }
+        }
+
+        function selectRating(type, value, container) {
+            document.querySelectorAll(`.${type}-scale .rating-btn`).forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            container.querySelector(`[data-value="${value}"]`).classList.add('selected');
+            document.getElementById(type) = value;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'progress') {
+                setTimeout(updateProgressChart, 100);
+            } else if (tabName === 'cycle') {
+                setTimeout(() => {
+                    calculateCyclePhase();
+                    updateCycleChart();
+                }, 100);
+            }
+        }
+
+        function saveTodayData(e) {
+            e.preventDefault();
+
+            const mentalBtn = document.querySelector('.mental-scale .rating-btn.selected');
+            const physicalBtn = document.querySelector('.physical-scale .rating-btn.selected');
+
+            if (!mentalBtn || !physicalBtn) {
+                alert('Please rate both mental and physical wellbeing');
+                return;
+            }
+
+            const mental = parseInt(mentalBtn.dataset.value);
+            const physical = parseInt(physicalBtn.dataset.value);
+            const notes = document.getElementById('notes').value;
+
+            const today = new Date().toISOString().split('T')[0];
+            let data = JSON.parse(localStorage.getItem('wellnessData') || '[]');
+
+            // Remove existing entry for today
+            data = data.filter(d => d.date !== today);
+
+            // Add new entry
+            data.push({ date: today, mental, physical, notes });
+
+            localStorage.setItem('wellnessData', JSON.stringify(data));
+
+            // Show success message
+            const msg = document.getElementById('successMessage');
+            msg.classList.add('show');
+            setTimeout(() => msg.classList.remove('show'), 3000);
+
+            // Reset form
+            document.getElementById('wellnessForm').reset();
+            document.querySelectorAll('.rating-btn').forEach(btn => btn.classList.remove('selected'));
+
+            updateTodaySummary();
+        }
+
+        function updateTodaySummary() {
+            const today = new Date().toISOString().split('T')[0];
+            const data = JSON.parse(localStorage.getItem('wellnessData') || '[]');
+            const todayEntry = data.find(d => d.date === today);
+
+            const summary = document.getElementById('todaySummary');
+
+            if (todayEntry) {
+                summary.innerHTML = `
+                    <div class="wellness-summary">
+                        <div class="wellness-item">
+                            <div class="wellness-item-label">Mental</div>
+                            <div class="wellness-item-value" style="color: var(--mental);">${todayEntry.mental}/10</div>
+                        </div>
+                        <div class="wellness-item">
+                            <div class="wellness-item-label">Physical</div>
+                            <div class="wellness-item-value" style="color: var(--physical);">${todayEntry.physical}/10</div>
+                        </div>
+                    </div>
+                    ${todayEntry.notes ? `<div style="color: var(--text-light); font-size: 14px;">📝 "${todayEntry.notes}"</div>` : ''}
+                `;
+            } else {
+                summary.innerHTML = `
+                    <div class="empty-state-icon">📊</div>
+                    <p>No data recorded yet. Start by rating your wellness above.</p>
+                `;
+            }
+        }
+
+        let wellnessChart = null;
+
+        function updateProgressChart() {
+            const data = JSON.parse(localStorage.getItem('wellnessData') || '[]');
+
+            if (data.length === 0) {
+                const ctx = document.getElementById('wellnessChart');
+                ctx.parentElement.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📈</div><p>No data to display yet. Start tracking to see your timeline!</p></div>';
+                updateStats();
+                return;
+            }
+
+            // Sort data by date
+            data.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // Get last 30 days
+            const last30 = data.slice(-30);
+
+            const ctx = document.getElementById('wellnessChart');
+            if (ctx.tagName === 'CANVAS') {
+                if (wellnessChart) {
+                    wellnessChart.destroy();
+                }
+
+                wellnessChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: last30.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+                        datasets: [
+                            {
+                                label: 'Mental Wellbeing',
+                                data: last30.map(d => d.mental),
+                                borderColor: 'var(--mental)',
+                                backgroundColor: 'rgba(167, 139, 250, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: 'var(--mental)',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2
+                            },
+                            {
+                                label: 'Physical Wellbeing',
+                                data: last30.map(d => d.physical),
+                                borderColor: 'var(--physical)',
+                                backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: 'var(--physical)',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 10,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            updateStats(last30);
+            generateInsights(last30);
+        }
+
+        function updateStats(data = []) {
+            const allData = JSON.parse(localStorage.getItem('wellnessData') || '[]');
+            
+            if (allData.length === 0) {
+                document.getElementById('mentalAvg').textContent = '—';
+                document.getElementById('physicalAvg').textContent = '—';
+                document.getElementById('totalEntries').textContent = '—';
+                document.getElementById('streak').textContent = '—';
+                return;
+            }
+
+            const last7 = allData.slice(-7);
+            const mentalAvg = (last7.reduce((sum, d) => sum + d.mental, 0) / last7.length).toFixed(1);
+            const physicalAvg = (last7.reduce((sum, d) => sum + d.physical, 0) / last7.length).toFixed(1);
+
+            document.getElementById('mentalAvg').textContent = mentalAvg;
+            document.getElementById('physicalAvg').textContent = physicalAvg;
+            document.getElementById('totalEntries').textContent = allData.length;
+
+            // Calculate streak
+            let streak = 0;
+            const today = new Date();
+            for (let i = 0; i < 365; i++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                if (allData.find(d => d.date === dateStr)) {
+                    streak++;
+                } else if (i > 0) {
+                    break;
+                }
+            }
+            document.getElementById('streak').textContent = streak;
+        }
+
+        function generateInsights(data) {
+            const mentalAvg = data.reduce((sum, d) => sum + d.mental, 0) / data.length;
+            const physicalAvg = data.reduce((sum, d) => sum + d.physical, 0) / data.length;
+
+            let insight = '';
+
+            if (mentalAvg > 7 && physicalAvg > 7) {
+                insight = '✨ You\'re doing great! Both mental and physical wellness are strong.';
+            } else if (mentalAvg > physicalAvg) {
+                insight = '🧠 Your mental wellness is higher than physical. Consider adding more movement or rest.';
+            } else if (physicalAvg > mentalAvg) {
+                insight = '💪 Your physical wellness is higher. Keep up the exercise, but also focus on mental health activities.';
+            } else if (mentalAvg < 5 || physicalAvg < 5) {
+                insight = '⚠️ Your wellness scores are low. Consider talking to someone or consulting a healthcare provider.';
+            } else {
+                insight = '📊 Your wellness is balanced. Keep tracking to maintain this consistency.';
+            }
+
+            document.getElementById('insightText').textContent = insight;
+        }
+
+        // Cycle tracking
+        const phaseData = {
+            menstrual: {
+                days: '1-5',
+                energy: 'Low',
+                mood: 'May feel introspective',
+                symptoms: 'Cramps, fatigue, mood changes',
+                tips: 'Rest, stay hydrated, gentle exercise'
+            },
+            follicular: {
+                days: '6-13',
+                energy: 'Increasing',
+                mood: 'Positive, energetic',
+                symptoms: 'More energy, improved mood',
+                tips: 'Great for challenging workouts, social activities'
+            },
+            ovulation: {
+                days: '14',
+                energy: 'Peak',
+                mood: 'Confident, social',
+                symptoms: 'Peak energy, increased libido',
+                tips: 'Best time for important meetings or presentations'
+            },
+            luteal: {
+                days: '15-28',
+                energy: 'Declining',
+                mood: 'Variable, introspective',
+                symptoms: 'PMS symptoms, mood swings, fatigue',
+                tips: 'Self-care focus, rest days, nutritious foods'
+            }
+        };
+
+        function calculateCyclePhase() {
+            const lastPeriodInput = document.getElementById('lastPeriodDate').value;
+            if (!lastPeriodInput) {
+                alert('Please select your last period start date');
+                return;
+            }
+
+            const lastPeriod = new Date(lastPeriodInput);
+            const today = new Date();
+            const daysSinceLastPeriod = Math.floor((today - lastPeriod) / (1000 * 60 * 60 * 24)) % 28;
+
+            let phase, phaseInfo, dayInCycle;
+
+            if (daysSinceLastPeriod <= 5) {
+                phase = 'menstrual';
+                dayInCycle = daysSinceLastPeriod + 1;
+            } else if (daysSinceLastPeriod <= 13) {
+                phase = 'follicular';
+                dayInCycle = daysSinceLastPeriod + 1;
+            } else if (daysSinceLastPeriod === 14) {
+                phase = 'ovulation';
+                dayInCycle = 14;
+            } else {
+                phase = 'luteal';
+                dayInCycle = daysSinceLastPeriod + 1;
+            }
+
+            const phaseNames = {
+                menstrual: 'Menstrual',
+                follicular: 'Follicular',
+                ovulation: 'Ovulation',
+                luteal: 'Luteal'
+            };
+
+            document.getElementById('cycleCircle').textContent = `Day ${dayInCycle}\n${phaseNames[phase]}`;
+
+            renderPhaseCards(phase);
+        }
+
+        function renderPhaseCards(activePhase) {
+            const container = document.getElementById('phaseCards');
+            container.innerHTML = '';
+
+            Object.entries(phaseData).forEach(([phase, info]) => {
+                const card = document.createElement('div');
+                card.className = `phase-card ${phase === activePhase ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <h4>${phase.charAt(0).toUpperCase() + phase.slice(1)}</h4>
+                    <p><strong>Days:</strong> ${info.days}</p>
+                    <p><strong>Energy:</strong> ${info.energy}</p>
+                    <p><strong>Mood:</strong> ${info.mood}</p>
+                    <p><strong>Symptoms:</strong> ${info.symptoms}</p>
+                    <p><strong>Tips:</strong> ${info.tips}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateCycleData() {
+            calculateCyclePhase();
+        }
+
+        let cycleChart = null;
+
+        function updateCycleChart() {
+            const data = JSON.parse(localStorage.getItem('wellnessData') || '[]');
+
+            if (data.length === 0) {
+                const ctx = document.getElementById('cycleChart');
+                if (ctx && ctx.parentElement) {
+                    ctx.parentElement.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📈</div><p>No wellness data yet. Track your daily wellness in the Today tab!</p></div>';
+                }
+                return;
+            }
+
+            const phaseAverages = { menstrual: [], follicular: [], ovulation: [], luteal: [] };
+
+            data.forEach(entry => {
+                const date = new Date(entry.date);
+                const dayOfCycle = (Math.floor((date - new Date(date.getFullYear(), date.getMonth(), date.getDate())) / (1000 * 60 * 60 * 24)) % 28) + 1;
+
+                let phase;
+                if (dayOfCycle <= 5) phase = 'menstrual';
+                else if (dayOfCycle <= 13) phase = 'follicular';
+                else if (dayOfCycle === 14) phase = 'ovulation';
+                else phase = 'luteal';
+
+                phaseAverages[phase].push(entry.mental + entry.physical / 2);
+            });
+
+            const ctx = document.getElementById('cycleChart');
+            if (ctx && ctx.tagName === 'CANVAS') {
+                if (cycleChart) {
+                    cycleChart.destroy();
+                }
+
+                cycleChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Menstrual', 'Follicular', 'Ovulation', 'Luteal'],
+                        datasets: [{
+                            label: 'Average Wellness',
+                            data: [
+                                phaseAverages.menstrual.length ? (phaseAverages.menstrual.reduce((a, b) => a + b) / phaseAverages.menstrual.length) : 0,
+                                phaseAverages.follicular.length ? (phaseAverages.follicular.reduce((a, b) => a + b) / phaseAverages.follicular.length) : 0,
+                                phaseAverages.ovulation.length ? (phaseAverages.ovulation.reduce((a, b) => a + b) / phaseAverages.ovulation.length) : 0,
+                                phaseAverages.luteal.length ? (phaseAverages.luteal.reduce((a, b) => a + b) / phaseAverages.luteal.length) : 0
+                            ],
+                            backgroundColor: ['#a78bfa', '#60a5fa', '#14b8a6', '#f59e0b'],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 10
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            initRatingScales();
+            updateTodaySummary();
+            renderPhaseCards('menstrual');
+            
+            // Load saved last period date
+            const savedDate = localStorage.getItem('lastPeriodDate');
+            if (savedDate) {
+                document.getElementById('lastPeriodDate').value = savedDate;
+                calculateCyclePhase();
+            }
+        });
+
+        // Save last period date
+        document.addEventListener('change', (e) => {
+            if (e.target.id === 'lastPeriodDate') {
+                localStorage.setItem('lastPeriodDate', e.target.value);
+            }
+        });
+    </script>
+</body>
+</html>
