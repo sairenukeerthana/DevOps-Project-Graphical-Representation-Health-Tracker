@@ -15,56 +15,12 @@ CSS3 - Styling, gradients, responsive design
 Vanilla JavaScript (ES6+) - Application logic
 Chart.js - Data visualization (included via CDN)
 LocalStorage API - Client-side data persistence
-
-Hence the data flow is:
-
-User
- ↓
-Heal HTML page
- ↓
-JavaScript
- ↓
-Browser localStorage
- ↓
-Chart.js displays the data
-
-the wellness entries are saved using the code:
-localStorage.setItem('wellnessData', JSON.stringify(data));
-
-**Installation Instructions**
-directly download the file, and you can start using it without worrying about data privacy.
-the file will open in the browser such as Microsoft edge or chrome.
+Django - for the backend 
 
 
 
 
+<img width="1641" height="827" alt="image" src="https://github.com/user-attachments/assets/826a25a7-3087-4108-8ad1-0ce36f3d59cf" />
 
+<img width="1650" height="732" alt="Screenshot 2026-09-17 230637" src="https://github.com/user-attachments/assets/508b60c6-08f8-4103-aed2-2cea8a1860aa" />
 
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Happy building! 🚀
